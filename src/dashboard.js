@@ -4,26 +4,31 @@ import { fmtUSD, fmtPercent, getLatestEntries, calcUtilization, calcDaysTillDue,
 export function renderDashboard(state, actions) {
   const container = h('div', { class: 'dashboard' });
   
-  // KPIs Section
-  container.appendChild(h('section', { class: 'panel' },
-    h('h2', {}, 'Overview'),
+  // Top section: 3-column layout
+  const topSection = h('div', { class: 'dashboard-top' });
+  
+  // Left column - KPIs
+  topSection.appendChild(h('section', { class: 'panel dashboard-kpis' },
+    h('h2', {}, 'KPIs'),
     renderKPIs(state)
   ));
   
-  // Utilization Order Table
-  container.appendChild(h('section', { class: 'panel' },
+  // Middle column - Utilization Order
+  topSection.appendChild(h('section', { class: 'panel dashboard-util' },
     h('h2', {}, 'Utilization Order'),
     renderUtilizationTable(state, actions)
   ));
   
-  // Payment Calendar
-  container.appendChild(h('section', { class: 'panel' },
-    h('h2', {}, 'Payment Calendar'),
+  // Right column - Payment Calendar
+  topSection.appendChild(h('section', { class: 'panel dashboard-calendar' },
+    h('h2', {}, 'Payment Calendar (next 4 weeks)'),
     renderPaymentCalendar(state)
   ));
   
-  // Cards Overview
-  container.appendChild(h('section', { class: 'panel' },
+  container.appendChild(topSection);
+  
+  // Bottom section: Cards Overview (full width)
+  container.appendChild(h('section', { class: 'panel dashboard-cards' },
     h('h2', {}, 'Cards Overview'),
     renderCardsOverview(state, actions)
   ));
@@ -163,16 +168,19 @@ function renderPaymentCalendar(state) {
       cell.appendChild(h('div', { class: 'calendar-date' }, date.getDate().toString()));
       
       if (dueCards.length > 0) {
-        const dots = h('div', { class: 'calendar-dots' });
+        const items = h('div', { class: 'calendar-items' });
         dueCards.forEach(({ card, entry }) => {
-          const dot = h('div', {
+          const item = h('div', { class: 'calendar-item' });
+          const dot = h('span', {
             class: 'calendar-dot',
-            style: { backgroundColor: card.color },
-            title: `${card.name}: ${fmtUSD(entry.remainingStmt || 0)}`
+            style: { backgroundColor: card.color }
           });
-          dots.appendChild(dot);
+          const label = h('span', { class: 'calendar-label' }, card.name);
+          item.appendChild(dot);
+          item.appendChild(label);
+          items.appendChild(item);
         });
-        cell.appendChild(dots);
+        cell.appendChild(items);
       }
       
       row.appendChild(cell);
@@ -203,63 +211,81 @@ function renderCardsOverview(state, actions) {
 function renderCardPanel(card, entry, actions) {
   const panel = h('div', { class: 'card-panel', style: { borderLeft: `4px solid ${card.color}` } });
   
-  // Header
+  // Header with card name
   panel.appendChild(h('h3', {}, card.name));
-  panel.appendChild(h('div', { class: 'muted small' }, `${card.issuer} • ${fmtUSD(card.limit)}`));
+  panel.appendChild(h('div', { class: 'card-issuer' }, `${card.issuer} • Limit: ${fmtUSD(card.limit)}`));
   
-  if (!entry) {
-    panel.appendChild(h('div', { class: 'muted' }, 'No entries yet'));
-  } else {
-    // Metrics
-    const utilization = calcUtilization(entry, card);
-    const daysTillDue = calcDaysTillDue(entry);
-    const closesIn = calcClosesIn(entry);
-    const estInterest = calcEstInterest(entry, card);
-    
-    const metrics = h('div', { class: 'card-metrics' });
-    
-    metrics.appendChild(renderMetric('Current Balance', fmtUSD(entry.currentBalance)));
-    metrics.appendChild(renderMetric('Remaining Stmt', fmtUSD(entry.remainingStmt)));
-    metrics.appendChild(renderMetric('Min Payment', fmtUSD(entry.minPayment)));
-    metrics.appendChild(renderMetric('Available Credit', fmtUSD(entry.availableCredit)));
-    
-    if (entry.overLimit && entry.overLimit > 0) {
-      metrics.appendChild(h('div', { class: 'badge badge-red' }, `Over by ${fmtUSD(entry.overLimit)}`));
-    }
-    
-    metrics.appendChild(renderMetric('Utilization', fmtPercent(utilization)));
-    metrics.appendChild(renderMetric('Target', fmtPercent(card.utilTarget)));
-    
-    if (utilization >= card.utilTarget) {
-      metrics.appendChild(h('div', { class: 'badge badge-yellow' }, `≥ Target ${fmtPercent(card.utilTarget)}`));
-    }
-    
-    if (entry.dueDate) {
-      metrics.appendChild(renderMetric('Due Date', entry.dueDate));
-      if (daysTillDue !== null) {
-        metrics.appendChild(renderMetric('Days till Due', daysTillDue.toString()));
-      }
-    }
-    
-    if (entry.statementEnd) {
-      metrics.appendChild(renderMetric('Statement Close', entry.statementEnd));
-      if (closesIn !== null) {
-        metrics.appendChild(renderMetric('Closes in', closesIn.toString() + ' days'));
-      }
-    }
-    
-    metrics.appendChild(renderMetric('Est. Interest', fmtUSD(estInterest)));
-    
-    panel.appendChild(metrics);
-  }
-  
-  // Log button
-  const logBtn = h('button', { class: 'btn-secondary small' }, 'Log');
+  // Log button (top right)
+  const logBtn = h('button', { class: 'btn-secondary small log-btn' }, 'Log');
   logBtn.onclick = () => {
     actions.selectCard(card.id);
     actions.setView('log');
   };
   panel.appendChild(logBtn);
+  
+  if (!entry) {
+    panel.appendChild(h('div', { class: 'muted' }, 'No entries yet'));
+    return panel;
+  }
+  
+  // Calculate metrics
+  const utilization = calcUtilization(entry, card);
+  const daysTillDue = calcDaysTillDue(entry);
+  const closesIn = calcClosesIn(entry);
+  const estInterest = calcEstInterest(entry, card);
+  
+  // Badges section
+  const badges = h('div', { class: 'card-badges' });
+  if (entry.overLimit && entry.overLimit > 0) {
+    badges.appendChild(h('div', { class: 'badge badge-red' }, `Over by ${fmtUSD(entry.overLimit)}`));
+  }
+  if (utilization >= card.utilTarget) {
+    badges.appendChild(h('div', { class: 'badge badge-yellow' }, `≥ Target ${fmtPercent(card.utilTarget)}`));
+  }
+  if (badges.children.length > 0) {
+    panel.appendChild(badges);
+  }
+  
+  // Metrics organized in rows
+  const metrics = h('div', { class: 'card-metrics' });
+  
+  // Row 1: Current Balance & Remaining Statement Balance
+  const row1 = h('div', { class: 'card-metrics-row' });
+  row1.appendChild(renderMetric('Current Balance', fmtUSD(entry.currentBalance)));
+  row1.appendChild(renderMetric('Remaining Statement Balance', fmtUSD(entry.remainingStmt)));
+  metrics.appendChild(row1);
+  
+  // Row 2: Min Payment & Available
+  const row2 = h('div', { class: 'card-metrics-row' });
+  row2.appendChild(renderMetric('Min Payment', fmtUSD(entry.minPayment)));
+  row2.appendChild(renderMetric('Available', entry.availableCredit ? fmtUSD(entry.availableCredit) : '$0.00'));
+  metrics.appendChild(row2);
+  
+  // Row 3: Over Limit & Utilization
+  const row3 = h('div', { class: 'card-metrics-row' });
+  row3.appendChild(renderMetric('Over Limit', entry.overLimit && entry.overLimit > 0 ? fmtUSD(entry.overLimit) : '—'));
+  row3.appendChild(renderMetric('Utilization', fmtPercent(utilization)));
+  metrics.appendChild(row3);
+  
+  // Row 4: Util Target & Due Date
+  const row4 = h('div', { class: 'card-metrics-row' });
+  row4.appendChild(renderMetric('Util Target', fmtPercent(card.utilTarget)));
+  row4.appendChild(renderMetric('Due Date', entry.dueDate || '—'));
+  metrics.appendChild(row4);
+  
+  // Row 5: Days till Due & Statement Close
+  const row5 = h('div', { class: 'card-metrics-row' });
+  row5.appendChild(renderMetric('Days till Due', daysTillDue !== null ? daysTillDue.toString() : '—'));
+  row5.appendChild(renderMetric('Statement Close', entry.statementEnd || '—'));
+  metrics.appendChild(row5);
+  
+  // Row 6: Closes in & Est. Interest
+  const row6 = h('div', { class: 'card-metrics-row' });
+  row6.appendChild(renderMetric('Closes in', closesIn !== null ? closesIn.toString() : '—'));
+  row6.appendChild(renderMetric('Est. Interest (mo)', fmtUSD(estInterest)));
+  metrics.appendChild(row6);
+  
+  panel.appendChild(metrics);
   
   return panel;
 }
