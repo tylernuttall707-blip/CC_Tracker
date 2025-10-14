@@ -49,15 +49,15 @@ function renderCardForm(card, state, actions) {
   // Form fields in 2-column grid
   const grid = h('div', { class: 'form-grid' });
   
-  // Card Name
+  // Card Name - use onblur to update after user finishes typing
   grid.appendChild(renderField('Card Name', h('input', {
     type: 'text',
     value: card.name,
     maxlength: '50',
-    oninput: (e) => actions.updateCard(card.id, { name: e.target.value })
+    onblur: (e) => actions.updateCard(card.id, { name: e.target.value })
   })));
   
-  // Issuer
+  // Issuer - select is fine with onchange
   grid.appendChild(renderField('Issuer', h('select', {
     value: card.issuer,
     onchange: (e) => actions.updateCard(card.id, { issuer: e.target.value })
@@ -67,17 +67,17 @@ function renderCardForm(card, state, actions) {
     h('option', { value: 'Other' }, 'Other')
   )));
   
-  // Credit Limit
+  // Credit Limit - use onblur
   grid.appendChild(renderField('Credit Limit', h('input', {
     type: 'number',
     value: card.limit || '',
     min: '0',
     step: '100',
     placeholder: '0',
-    oninput: (e) => actions.updateCard(card.id, { limit: parseFloat(e.target.value) || 0 })
+    onblur: (e) => actions.updateCard(card.id, { limit: parseFloat(e.target.value) || 0 })
   })));
   
-  // APR %
+  // APR % - use onblur
   grid.appendChild(renderField('APR %', h('input', {
     type: 'number',
     value: card.apr || '',
@@ -85,10 +85,10 @@ function renderCardForm(card, state, actions) {
     max: '100',
     step: '0.01',
     placeholder: '0',
-    oninput: (e) => actions.updateCard(card.id, { apr: parseFloat(e.target.value) || 0 })
+    onblur: (e) => actions.updateCard(card.id, { apr: parseFloat(e.target.value) || 0 })
   })));
   
-  // Utilization Target %
+  // Utilization Target % - use onblur
   grid.appendChild(renderField('Utilization Target %', h('input', {
     type: 'number',
     value: card.utilTarget || '',
@@ -96,7 +96,7 @@ function renderCardForm(card, state, actions) {
     max: '100',
     step: '1',
     placeholder: '30',
-    oninput: (e) => actions.updateCard(card.id, { utilTarget: parseFloat(e.target.value) || 30 })
+    onblur: (e) => actions.updateCard(card.id, { utilTarget: parseFloat(e.target.value) || 30 })
   })));
   
   // Card Color
@@ -105,11 +105,11 @@ function renderCardForm(card, state, actions) {
   
   const colorRow = h('div', { class: 'color-picker' });
   
-  // Color input
+  // Color input - onchange is fine for color picker
   const colorInput = h('input', {
     type: 'color',
     value: card.color,
-    oninput: (e) => actions.updateCard(card.id, { color: e.target.value })
+    onchange: (e) => actions.updateCard(card.id, { color: e.target.value })
   });
   colorRow.appendChild(colorInput);
   

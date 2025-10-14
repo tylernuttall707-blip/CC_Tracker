@@ -74,11 +74,32 @@ const actions = {
     updateState({ selectedCardId: cardId });
   },
   
-  updateDraft(updates) {
-    updateState({ draft: { ...state.draft, ...updates } });
-  },
-  
   clearDraft() {
+    // Reset form inputs
+    const form = document.getElementById('entry-form');
+    if (form) {
+      const dateInput = document.getElementById('date-input');
+      const currentBalanceInput = document.getElementById('current-balance-input');
+      const remainingStmtInput = document.getElementById('remaining-stmt-input');
+      const minPaymentInput = document.getElementById('min-payment-input');
+      const availableCreditInput = document.getElementById('available-credit-input');
+      const overLimitInput = document.getElementById('over-limit-input');
+      const stmtEndInput = document.getElementById('stmt-end-input');
+      const dueDateInput = document.getElementById('due-date-input');
+      const notesInput = document.getElementById('notes-input');
+      
+      if (dateInput) dateInput.value = todayISO();
+      if (currentBalanceInput) currentBalanceInput.value = '';
+      if (remainingStmtInput) remainingStmtInput.value = '';
+      if (minPaymentInput) minPaymentInput.value = '';
+      if (availableCreditInput) availableCreditInput.value = '';
+      if (overLimitInput) overLimitInput.value = '';
+      if (stmtEndInput) stmtEndInput.value = '';
+      if (dueDateInput) dueDateInput.value = '';
+      if (notesInput) notesInput.value = '';
+    }
+    
+    // Update state to reset draft
     updateState({
       draft: {
         date: todayISO(),
@@ -100,11 +121,23 @@ const actions = {
       alert('Please select a card');
       return;
     }
-    if (!state.draft.date) {
+    
+    // Read values from form inputs
+    const dateInput = document.getElementById('date-input');
+    const currentBalanceInput = document.getElementById('current-balance-input');
+    const remainingStmtInput = document.getElementById('remaining-stmt-input');
+    const minPaymentInput = document.getElementById('min-payment-input');
+    const availableCreditInput = document.getElementById('available-credit-input');
+    const overLimitInput = document.getElementById('over-limit-input');
+    const stmtEndInput = document.getElementById('stmt-end-input');
+    const dueDateInput = document.getElementById('due-date-input');
+    const notesInput = document.getElementById('notes-input');
+    
+    if (!dateInput || !dateInput.value) {
       alert('Please enter a date');
       return;
     }
-    if (!state.draft.currentBalance) {
+    if (!currentBalanceInput || !currentBalanceInput.value) {
       alert('Please enter current balance');
       return;
     }
@@ -113,15 +146,15 @@ const actions = {
     const entry = {
       id: uid(),
       cardId: state.selectedCardId,
-      date: state.draft.date,
-      currentBalance: parseFloat(state.draft.currentBalance) || 0,
-      remainingStmt: parseFloat(state.draft.remainingStmt) || 0,
-      minPayment: parseFloat(state.draft.minPayment) || 0,
-      availableCredit: parseFloat(state.draft.availableCredit) || 0,
-      overLimit: state.draft.overLimit ? parseFloat(state.draft.overLimit) : null,
-      statementEnd: state.draft.statementEnd || null,
-      dueDate: state.draft.dueDate || null,
-      notes: state.draft.notes || ''
+      date: dateInput.value,
+      currentBalance: parseFloat(currentBalanceInput.value) || 0,
+      remainingStmt: parseFloat(remainingStmtInput?.value) || 0,
+      minPayment: parseFloat(minPaymentInput?.value) || 0,
+      availableCredit: parseFloat(availableCreditInput?.value) || 0,
+      overLimit: overLimitInput?.value ? parseFloat(overLimitInput.value) : null,
+      statementEnd: stmtEndInput?.value || null,
+      dueDate: dueDateInput?.value || null,
+      notes: notesInput?.value || ''
     };
     
     updateState({ entries: [...state.entries, entry] });

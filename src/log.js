@@ -23,7 +23,7 @@ export function renderLog(state, actions) {
 }
 
 function renderEntryForm(state, actions) {
-  const form = h('div', { class: 'entry-form' });
+  const form = h('div', { class: 'entry-form', id: 'entry-form' });
   
   if (!state.cards.length) {
     form.appendChild(h('div', { class: 'muted' }, 'Please add a card first.'));
@@ -32,8 +32,9 @@ function renderEntryForm(state, actions) {
   
   const grid = h('div', { class: 'form-grid' });
   
-  // Card selector
+  // Card selector (controlled - dropdowns don't have focus issues)
   const cardSelect = h('select', {
+    id: 'card-select',
     value: state.selectedCardId || '',
     onchange: (e) => actions.selectCard(e.target.value)
   },
@@ -42,110 +43,113 @@ function renderEntryForm(state, actions) {
   );
   grid.appendChild(renderField('Card *', cardSelect));
   
-  // Date
-  grid.appendChild(renderField('Date *', h('input', {
+  // Date (uncontrolled - no oninput, just default value)
+  const dateInput = h('input', {
     type: 'date',
-    value: state.draft.date,
-    oninput: (e) => actions.updateDraft({ date: e.target.value })
-  })));
+    id: 'date-input',
+    value: state.draft.date || todayISO()
+  });
+  grid.appendChild(renderField('Date *', dateInput));
   
-  // Due Date with Suggest button
-  const dueDateRow = h('div', { class: 'field-row' });
-  dueDateRow.appendChild(h('input', {
+  // Due Date with Suggest button (uncontrolled)
+  const dueDateInput = h('input', {
     type: 'date',
-    value: state.draft.dueDate,
-    oninput: (e) => actions.updateDraft({ dueDate: e.target.value })
-  }));
+    id: 'due-date-input',
+    value: state.draft.dueDate || ''
+  });
+  const dueDateRow = h('div', { class: 'field-row' });
+  dueDateRow.appendChild(dueDateInput);
   dueDateRow.appendChild(h('button', {
     class: 'btn-suggest',
     onclick: () => {
       if (!state.selectedCardId) return;
       const latest = getLatestEntry(state.selectedCardId, state.entries);
       if (latest && latest.dueDate) {
-        actions.updateDraft({ dueDate: latest.dueDate });
+        dueDateInput.value = latest.dueDate;
       }
     }
   }, 'Suggest'));
   grid.appendChild(renderField('Due Date', dueDateRow));
   
-  // Current Balance
+  // Current Balance (uncontrolled)
   grid.appendChild(renderField('Current Balance *', h('input', {
     type: 'number',
-    value: state.draft.currentBalance,
+    id: 'current-balance-input',
+    value: state.draft.currentBalance || '',
     min: '0',
     step: '0.01',
-    placeholder: '0.00',
-    oninput: (e) => actions.updateDraft({ currentBalance: e.target.value })
+    placeholder: '0.00'
   })));
   
-  // Remaining Statement Balance
+  // Remaining Statement Balance (uncontrolled)
   grid.appendChild(renderField('Remaining Stmt Balance', h('input', {
     type: 'number',
-    value: state.draft.remainingStmt,
+    id: 'remaining-stmt-input',
+    value: state.draft.remainingStmt || '',
     min: '0',
     step: '0.01',
-    placeholder: '0.00',
-    oninput: (e) => actions.updateDraft({ remainingStmt: e.target.value })
+    placeholder: '0.00'
   })));
   
-  // Available Credit
+  // Available Credit (uncontrolled)
   grid.appendChild(renderField('Available Credit', h('input', {
     type: 'number',
-    value: state.draft.availableCredit,
+    id: 'available-credit-input',
+    value: state.draft.availableCredit || '',
     min: '0',
     step: '0.01',
-    placeholder: '0.00',
-    oninput: (e) => actions.updateDraft({ availableCredit: e.target.value })
+    placeholder: '0.00'
   })));
   
-  // Statement End with Suggest button
-  const stmtEndRow = h('div', { class: 'field-row' });
-  stmtEndRow.appendChild(h('input', {
+  // Statement End with Suggest button (uncontrolled)
+  const stmtEndInput = h('input', {
     type: 'date',
-    value: state.draft.statementEnd,
-    oninput: (e) => actions.updateDraft({ statementEnd: e.target.value })
-  }));
+    id: 'stmt-end-input',
+    value: state.draft.statementEnd || ''
+  });
+  const stmtEndRow = h('div', { class: 'field-row' });
+  stmtEndRow.appendChild(stmtEndInput);
   stmtEndRow.appendChild(h('button', {
     class: 'btn-suggest',
     onclick: () => {
       if (!state.selectedCardId) return;
       const latest = getLatestEntry(state.selectedCardId, state.entries);
       if (latest && latest.statementEnd) {
-        actions.updateDraft({ statementEnd: latest.statementEnd });
+        stmtEndInput.value = latest.statementEnd;
       }
     }
   }, 'Suggest'));
   grid.appendChild(renderField('Statement End', stmtEndRow));
   
-  // Minimum Payment
+  // Minimum Payment (uncontrolled)
   grid.appendChild(renderField('Minimum Payment', h('input', {
     type: 'number',
-    value: state.draft.minPayment,
+    id: 'min-payment-input',
+    value: state.draft.minPayment || '',
     min: '0',
     step: '0.01',
-    placeholder: '0.00',
-    oninput: (e) => actions.updateDraft({ minPayment: e.target.value })
+    placeholder: '0.00'
   })));
   
-  // Over Limit
+  // Over Limit (uncontrolled)
   grid.appendChild(renderField('Over Limit', h('input', {
     type: 'number',
-    value: state.draft.overLimit,
+    id: 'over-limit-input',
+    value: state.draft.overLimit || '',
     min: '0',
     step: '0.01',
-    placeholder: '0.00',
-    oninput: (e) => actions.updateDraft({ overLimit: e.target.value })
+    placeholder: '0.00'
   })));
   
   form.appendChild(grid);
   
-  // Notes (full width)
+  // Notes (uncontrolled)
   form.appendChild(renderField('Notes', h('textarea', {
-    value: state.draft.notes,
+    id: 'notes-input',
+    value: state.draft.notes || '',
     maxlength: '500',
     rows: '3',
-    placeholder: 'Optional notes...',
-    oninput: (e) => actions.updateDraft({ notes: e.target.value })
+    placeholder: 'Optional notes...'
   })));
   
   // Actions
