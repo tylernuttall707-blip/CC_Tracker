@@ -118,6 +118,27 @@ body.dark .theme-toggle:hover {
   height: calc(100vh - 120px); /* Full viewport minus nav and padding */
 }
 
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.dashboard-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.print-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .dashboard-top {
   display: grid;
   grid-template-columns: 1fr 1fr 2fr;
@@ -709,5 +730,290 @@ textarea {
 @media (min-width: 1201px) and (max-width: 1400px) {
   .dashboard-top {
     max-height: 65vh;
+  }
+}
+
+/* Print Styles */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  /* Hide navigation and interactive elements */
+  .nav,
+  .print-btn,
+  .log-btn,
+  .btn-delete,
+  .theme-toggle,
+  button:not(.no-print-hide) {
+    display: none !important;
+  }
+  
+  /* Reset container constraints */
+  .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  
+  /* Dashboard layout for print */
+  .dashboard {
+    display: block !important;
+    height: auto !important;
+    page-break-after: avoid;
+  }
+  
+  .dashboard-header {
+    display: block !important;
+    margin-bottom: 1rem;
+    page-break-after: avoid;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 24px;
+    margin: 0;
+    padding: 0.5rem 0;
+    border-bottom: 2px solid #000;
+  }
+  
+  /* Top section - keep three columns but remove height constraints */
+  .dashboard-top {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 2fr;
+    gap: 1rem;
+    max-height: none !important;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+  
+  /* Panels */
+  .panel {
+    border: 1px solid #333 !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
+    box-shadow: none !important;
+    background: white !important;
+    page-break-inside: avoid;
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .panel h2 {
+    font-size: 14px !important;
+    margin-bottom: 0.5rem !important;
+    color: #000 !important;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 0.25rem;
+  }
+  
+  /* KPIs */
+  .dashboard-kpis {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .kpi-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    height: auto !important;
+  }
+  
+  .kpi {
+    border: 1px solid #ccc !important;
+    padding: 0.5rem !important;
+    background: #f9f9f9 !important;
+  }
+  
+  .kpi-label {
+    font-size: 9px !important;
+    color: #666 !important;
+  }
+  
+  .kpi-value {
+    font-size: 14px !important;
+    color: #000 !important;
+  }
+  
+  /* Utilization table */
+  .dashboard-util {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .util-table {
+    height: auto !important;
+    display: table !important;
+  }
+  
+  .util-table thead,
+  .util-table tbody {
+    display: table-header-group !important;
+  }
+  
+  .util-table tbody {
+    display: table-row-group !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  th {
+    background: #f0f0f0 !important;
+    color: #000 !important;
+    font-size: 10px !important;
+    padding: 0.4rem !important;
+  }
+  
+  td {
+    font-size: 11px !important;
+    padding: 0.4rem !important;
+    color: #000 !important;
+  }
+  
+  .link {
+    color: #000 !important;
+    text-decoration: none !important;
+  }
+  
+  /* Calendar */
+  .dashboard-calendar {
+    overflow: visible !important;
+    height: auto !important;
+  }
+  
+  .calendar {
+    height: auto !important;
+    border: 1px solid #333 !important;
+  }
+  
+  .calendar-header {
+    background: #f0f0f0 !important;
+    font-size: 8px !important;
+    padding: 0.3rem !important;
+    color: #000 !important;
+  }
+  
+  .calendar-cell {
+    min-height: 50px !important;
+    padding: 0.3rem !important;
+    border: 1px solid #ddd !important;
+    background: white !important;
+  }
+  
+  .calendar-cell.today {
+    background: #f0f0f0 !important;
+    border: 1px solid #000 !important;
+  }
+  
+  .calendar-date {
+    font-size: 9px !important;
+    color: #666 !important;
+  }
+  
+  .calendar-label {
+    font-size: 8px !important;
+    color: #000 !important;
+  }
+  
+  .calendar-dot {
+    width: 5px !important;
+    height: 5px !important;
+    background: #666 !important;
+    border: 1px solid #000;
+  }
+  
+  /* Cards Overview */
+  .dashboard-cards {
+    overflow: visible !important;
+    height: auto !important;
+    page-break-before: always;
+  }
+  
+  .cards-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    page-break-inside: auto;
+  }
+  
+  .card-panel {
+    border: 1px solid #333 !important;
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem;
+    box-shadow: none !important;
+    background: white !important;
+    page-break-inside: avoid;
+    position: relative;
+  }
+  
+  .card-panel h3 {
+    font-size: 14px !important;
+    color: #000 !important;
+    margin-bottom: 0.25rem !important;
+    padding-right: 0 !important;
+  }
+  
+  .card-panel .card-issuer {
+    font-size: 10px !important;
+    color: #666 !important;
+  }
+  
+  .card-badges {
+    margin-bottom: 0.5rem;
+  }
+  
+  .badge {
+    font-size: 9px !important;
+    padding: 0.2rem 0.4rem !important;
+    border: 1px solid #000 !important;
+    background: #f0f0f0 !important;
+    color: #000 !important;
+  }
+  
+  .card-metrics {
+    margin: 0.5rem 0;
+    gap: 0.25rem;
+  }
+  
+  .card-metrics-row {
+    gap: 0.5rem;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #ddd !important;
+  }
+  
+  .metric-label {
+    font-size: 9px !important;
+    color: #666 !important;
+  }
+  
+  .metric-value {
+    font-size: 11px !important;
+    color: #000 !important;
+  }
+  
+  /* Hide scrollbars */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Page breaks */
+  @page {
+    margin: 0.5in;
+    size: landscape;
+  }
+  
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+  
+  table, figure, img {
+    page-break-inside: avoid;
   }
 }

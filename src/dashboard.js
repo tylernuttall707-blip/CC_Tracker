@@ -4,6 +4,16 @@ import { fmtUSD, fmtPercent, getLatestEntries, calcUtilization, calcDaysTillDue,
 export function renderDashboard(state, actions) {
   const container = h('div', { class: 'dashboard' });
   
+  // Header with print button
+  const header = h('div', { class: 'dashboard-header' },
+    h('h1', {}, 'Dashboard'),
+    h('button', {
+      class: 'btn-secondary print-btn',
+      onclick: () => window.print()
+    }, '🖨️ Print')
+  );
+  container.appendChild(header);
+  
   // Top section: 3-column layout
   const topSection = h('div', { class: 'dashboard-top' });
   
