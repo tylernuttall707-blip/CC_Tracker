@@ -131,15 +131,36 @@ function renderEntryForm(state, actions) {
     placeholder: '0.00'
   })));
   
-  // Over Limit (uncontrolled)
-  grid.appendChild(renderField('Over Limit', h('input', {
+  // Over Limit with Auto Calculate button (uncontrolled)
+  const overLimitInput = h('input', {
     type: 'number',
     id: 'over-limit-input',
     value: state.draft.overLimit || '',
     min: '0',
     step: '0.01',
     placeholder: '0.00'
-  })));
+  });
+  const overLimitRow = h('div', { class: 'field-row' });
+  overLimitRow.appendChild(overLimitInput);
+  overLimitRow.appendChild(h('button', {
+    class: 'btn-suggest',
+    onclick: () => {
+      if (!state.selectedCardId) {
+        alert('Please select a card first');
+        return;
+      }
+      const card = state.cards.find(c => c.id === state.selectedCardId);
+      if (!card || !card.limit) {
+        alert('Selected card has no credit limit set');
+        return;
+      }
+      const currentBalanceInput = document.getElementById('current-balance-input');
+      const currentBalance = parseFloat(currentBalanceInput?.value) || 0;
+      const overLimit = Math.max(0, currentBalance - card.limit);
+      overLimitInput.value = overLimit.toFixed(2);
+    }
+  }, 'Auto'));
+  grid.appendChild(renderField('Over Limit', overLimitRow));
   
   form.appendChild(grid);
   
