@@ -733,7 +733,7 @@ textarea {
   }
 }
 
-/* Print Styles */
+/* Print Styles - Two Row Layout */
 @media print {
   * {
     -webkit-print-color-adjust: exact !important;
@@ -744,6 +744,7 @@ textarea {
   body {
     background: white !important;
     color: black !important;
+    font-size: 8pt;
   }
   
   /* Hide navigation and interactive elements */
@@ -772,32 +773,46 @@ textarea {
   
   .dashboard-header {
     display: block !important;
-    margin-bottom: 1rem;
+    margin-bottom: 0.4rem;
     page-break-after: avoid;
   }
   
   .dashboard-header h1 {
-    font-size: 24px;
+    font-size: 18pt;
+    font-weight: bold;
     margin: 0;
-    padding: 0.5rem 0;
+    padding: 0.3rem 0;
     border-bottom: 2px solid #000;
+    text-align: center;
   }
   
-  /* Top section - keep three columns but remove height constraints */
+  /* Top section - 2 column layout: KPIs+Util on left, Calendar on right */
   .dashboard-top {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 2fr;
-    gap: 1rem;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 0.4rem;
     max-height: none !important;
     page-break-inside: avoid;
-    margin-bottom: 1rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  /* Left column wrapper for KPIs and Utilization */
+  .dashboard-kpis,
+  .dashboard-util {
+    grid-column: 1;
+  }
+  
+  /* Calendar takes full right column */
+  .dashboard-calendar {
+    grid-column: 2;
+    grid-row: 1 / 3;
   }
   
   /* Panels */
   .panel {
     border: 1px solid #333 !important;
-    padding: 0.75rem !important;
-    margin-bottom: 0.5rem !important;
+    padding: 0.3rem !important;
+    margin-bottom: 0.3rem !important;
     box-shadow: none !important;
     background: white !important;
     page-break-inside: avoid;
@@ -806,14 +821,15 @@ textarea {
   }
   
   .panel h2 {
-    font-size: 14px !important;
-    margin-bottom: 0.5rem !important;
+    font-size: 11pt !important;
+    font-weight: bold;
+    margin: 0 0 0.3rem 0 !important;
     color: #000 !important;
     border-bottom: 1px solid #ccc;
-    padding-bottom: 0.25rem;
+    padding: 0.15rem 0;
   }
   
-  /* KPIs */
+  /* KPIs - 2x3 grid */
   .dashboard-kpis {
     overflow: visible !important;
     height: auto !important;
@@ -821,24 +837,27 @@ textarea {
   
   .kpi-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.25rem;
     height: auto !important;
   }
   
   .kpi {
     border: 1px solid #ccc !important;
-    padding: 0.5rem !important;
+    padding: 0.25rem !important;
     background: #f9f9f9 !important;
+    text-align: center;
   }
   
   .kpi-label {
-    font-size: 9px !important;
+    font-size: 7pt !important;
     color: #666 !important;
+    margin-bottom: 0.1rem;
   }
   
   .kpi-value {
-    font-size: 14px !important;
+    font-size: 10pt !important;
+    font-weight: bold;
     color: #000 !important;
   }
   
@@ -851,6 +870,7 @@ textarea {
   .util-table {
     height: auto !important;
     display: table !important;
+    width: 100%;
   }
   
   .util-table thead,
@@ -867,13 +887,14 @@ textarea {
   th {
     background: #f0f0f0 !important;
     color: #000 !important;
-    font-size: 10px !important;
-    padding: 0.4rem !important;
+    font-size: 7pt !important;
+    padding: 0.2rem !important;
+    font-weight: bold;
   }
   
   td {
-    font-size: 11px !important;
-    padding: 0.4rem !important;
+    font-size: 7pt !important;
+    padding: 0.2rem !important;
     color: #000 !important;
   }
   
@@ -882,71 +903,80 @@ textarea {
     text-decoration: none !important;
   }
   
-  /* Calendar */
+  /* Calendar - takes full height on right */
   .dashboard-calendar {
     overflow: visible !important;
     height: auto !important;
   }
   
   .calendar {
-    height: auto !important;
+    height: 100% !important;
     border: 1px solid #333 !important;
   }
   
   .calendar-header {
     background: #f0f0f0 !important;
-    font-size: 8px !important;
-    padding: 0.3rem !important;
+    font-size: 7pt !important;
+    padding: 0.15rem !important;
     color: #000 !important;
+    font-weight: bold;
   }
   
   .calendar-cell {
-    min-height: 50px !important;
-    padding: 0.3rem !important;
+    min-height: 30px !important;
+    padding: 0.15rem !important;
     border: 1px solid #ddd !important;
     background: white !important;
   }
   
   .calendar-cell.today {
-    background: #f0f0f0 !important;
+    background: #e8e8e8 !important;
     border: 1px solid #000 !important;
   }
   
   .calendar-date {
-    font-size: 9px !important;
+    font-size: 7pt !important;
     color: #666 !important;
+    margin-bottom: 0.1rem;
   }
   
   .calendar-label {
-    font-size: 8px !important;
+    font-size: 6pt !important;
     color: #000 !important;
   }
   
   .calendar-dot {
-    width: 5px !important;
-    height: 5px !important;
-    background: #666 !important;
-    border: 1px solid #000;
+    width: 4px !important;
+    height: 4px !important;
+    background: #000 !important;
   }
   
-  /* Cards Overview */
+  .calendar-items {
+    gap: 0.1rem;
+  }
+  
+  .calendar-item {
+    gap: 0.15rem;
+  }
+  
+  /* Cards Overview - 4 per row */
   .dashboard-cards {
     overflow: visible !important;
     height: auto !important;
-    page-break-before: always;
+    page-break-before: avoid;
   }
   
   .cards-grid {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    page-break-inside: auto;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.3rem;
+    page-break-inside: avoid;
   }
   
   .card-panel {
     border: 1px solid #333 !important;
-    padding: 0.75rem !important;
-    margin-bottom: 0.75rem;
+    padding: 0.25rem !important;
+    margin-bottom: 0;
     box-shadow: none !important;
     background: white !important;
     page-break-inside: avoid;
@@ -954,47 +984,56 @@ textarea {
   }
   
   .card-panel h3 {
-    font-size: 14px !important;
+    font-size: 9pt !important;
+    font-weight: bold;
     color: #000 !important;
-    margin-bottom: 0.25rem !important;
+    margin: 0 0 0.1rem 0 !important;
     padding-right: 0 !important;
   }
   
   .card-panel .card-issuer {
-    font-size: 10px !important;
+    font-size: 7pt !important;
     color: #666 !important;
+    margin-bottom: 0.2rem;
   }
   
   .card-badges {
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.2rem;
+    gap: 0.1rem;
   }
   
   .badge {
-    font-size: 9px !important;
-    padding: 0.2rem 0.4rem !important;
+    font-size: 6pt !important;
+    padding: 0.1rem 0.2rem !important;
     border: 1px solid #000 !important;
-    background: #f0f0f0 !important;
+    background: #e8e8e8 !important;
     color: #000 !important;
   }
   
   .card-metrics {
-    margin: 0.5rem 0;
-    gap: 0.25rem;
+    margin: 0.2rem 0;
+    gap: 0.1rem;
   }
   
   .card-metrics-row {
-    gap: 0.5rem;
-    padding: 0.3rem 0;
-    border-bottom: 1px solid #ddd !important;
+    gap: 0.25rem;
+    padding: 0.15rem 0;
+    border-bottom: 1px solid #e0e0e0 !important;
+  }
+  
+  .card-metrics-row:last-child {
+    border-bottom: none !important;
   }
   
   .metric-label {
-    font-size: 9px !important;
+    font-size: 6pt !important;
     color: #666 !important;
+    margin-bottom: 0.05rem;
   }
   
   .metric-value {
-    font-size: 11px !important;
+    font-size: 8pt !important;
+    font-weight: bold;
     color: #000 !important;
   }
   
@@ -1003,14 +1042,21 @@ textarea {
     display: none;
   }
   
-  /* Page breaks */
+  /* Page settings */
   @page {
-    margin: 0.5in;
-    size: landscape;
+    margin: 0.3in;
+    size: portrait;
   }
   
-  h1, h2, h3 {
-    page-break-after: avoid;
+  /* Prevent page breaks */
+  h1, h2, h3, .panel, .card-panel, .dashboard-top {
+    page-break-inside: avoid !important;
+  }
+  
+  .dashboard-header,
+  .dashboard-top,
+  .dashboard-cards {
+    page-break-after: avoid !important;
   }
   
   table, figure, img {
