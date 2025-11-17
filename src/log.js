@@ -1,5 +1,12 @@
 import { h, uid } from './dom-utils.js';
 import { fmtUSD, todayISO, getLatestEntry } from './utils.js';
+import {
+  FORM_IDS,
+  MAX_NOTES_LENGTH,
+  MAX_HISTORY_ENTRIES,
+  EMPTY_STATES,
+  VALIDATION_MESSAGES
+} from './constants.js';
 
 export function renderLog(state, actions) {
   const container = h('div', { class: 'log-page' });
@@ -26,7 +33,7 @@ function renderEntryForm(state, actions) {
   const form = h('div', { class: 'entry-form', id: 'entry-form' });
   
   if (!state.cards.length) {
-    form.appendChild(h('div', { class: 'muted' }, 'Please add a card first.'));
+    form.appendChild(h('div', { class: 'muted' }, EMPTY_STATES.NO_CARDS_FOR_LOG));
     return form;
   }
   
@@ -34,7 +41,7 @@ function renderEntryForm(state, actions) {
   
   // Card selector (controlled - dropdowns don't have focus issues)
   const cardSelect = h('select', {
-    id: 'card-select',
+    id: FORM_IDS.CARD_SELECT,
     value: state.selectedCardId || '',
     onchange: (e) => actions.selectCard(e.target.value)
   },
@@ -42,11 +49,11 @@ function renderEntryForm(state, actions) {
     ...state.cards.map(c => h('option', { value: c.id }, c.name))
   );
   grid.appendChild(renderField('Card *', cardSelect));
-  
+
   // Date (uncontrolled - no oninput, just default value)
   const dateInput = h('input', {
     type: 'date',
-    id: 'date-input',
+    id: FORM_IDS.DATE_INPUT,
     value: state.draft.date || todayISO()
   });
   grid.appendChild(renderField('Date *', dateInput));
@@ -54,7 +61,7 @@ function renderEntryForm(state, actions) {
   // Due Date with Suggest button (uncontrolled)
   const dueDateInput = h('input', {
     type: 'date',
-    id: 'due-date-input',
+    id: FORM_IDS.DUE_DATE_INPUT,
     value: state.draft.dueDate || ''
   });
   const dueDateRow = h('div', { class: 'field-row' });
@@ -70,31 +77,31 @@ function renderEntryForm(state, actions) {
     }
   }, 'Suggest'));
   grid.appendChild(renderField('Due Date', dueDateRow));
-  
+
   // Current Balance (uncontrolled)
   grid.appendChild(renderField('Current Balance *', h('input', {
     type: 'number',
-    id: 'current-balance-input',
+    id: FORM_IDS.CURRENT_BALANCE_INPUT,
     value: state.draft.currentBalance || '',
     min: '0',
     step: '0.01',
     placeholder: '0.00'
   })));
-  
+
   // Remaining Statement Balance (uncontrolled)
   grid.appendChild(renderField('Remaining Stmt Balance', h('input', {
     type: 'number',
-    id: 'remaining-stmt-input',
+    id: FORM_IDS.REMAINING_STMT_INPUT,
     value: state.draft.remainingStmt || '',
     min: '0',
     step: '0.01',
     placeholder: '0.00'
   })));
-  
+
   // Available Credit (uncontrolled)
   grid.appendChild(renderField('Available Credit', h('input', {
     type: 'number',
-    id: 'available-credit-input',
+    id: FORM_IDS.AVAILABLE_CREDIT_INPUT,
     value: state.draft.availableCredit || '',
     min: '0',
     step: '0.01',
@@ -104,7 +111,7 @@ function renderEntryForm(state, actions) {
   // Statement End with Suggest button (uncontrolled)
   const stmtEndInput = h('input', {
     type: 'date',
-    id: 'stmt-end-input',
+    id: FORM_IDS.STMT_END_INPUT,
     value: state.draft.statementEnd || ''
   });
   const stmtEndRow = h('div', { class: 'field-row' });
@@ -120,11 +127,11 @@ function renderEntryForm(state, actions) {
     }
   }, 'Suggest'));
   grid.appendChild(renderField('Statement End', stmtEndRow));
-  
+
   // Minimum Payment (uncontrolled)
   grid.appendChild(renderField('Minimum Payment', h('input', {
     type: 'number',
-    id: 'min-payment-input',
+    id: FORM_IDS.MIN_PAYMENT_INPUT,
     value: state.draft.minPayment || '',
     min: '0',
     step: '0.01',
@@ -134,7 +141,7 @@ function renderEntryForm(state, actions) {
   // Over Limit with Auto Calculate button (uncontrolled)
   const overLimitInput = h('input', {
     type: 'number',
-    id: 'over-limit-input',
+    id: FORM_IDS.OVER_LIMIT_INPUT,
     value: state.draft.overLimit || '',
     min: '0',
     step: '0.01',
@@ -146,18 +153,18 @@ function renderEntryForm(state, actions) {
     class: 'btn-suggest',
     onclick: () => {
       if (!state.selectedCardId) {
-        alert('Please select a card first');
+        alert(VALIDATION_MESSAGES.NO_CARD_SELECTED);
         return;
       }
       const card = state.cards.find(c => c.id === state.selectedCardId);
       if (!card || !card.limit) {
-        alert('Selected card has no credit limit set');
+        alert(VALIDATION_MESSAGES.CARD_NO_LIMIT);
         return;
       }
-      const currentBalanceInput = document.getElementById('current-balance-input');
+      const currentBalanceInput = document.getElementById(FORM_IDS.CURRENT_BALANCE_INPUT);
       const currentBalance = parseFloat(currentBalanceInput?.value) || 0;
       const overLimit = Math.max(0, currentBalance - card.limit);
-      overLimitInput.value = overLimit.toFixed(2);
+      overLimitInput.value = overLimit > 0 ? overLimit.toFixed(2) : '';
     }
   }, 'Auto'));
   grid.appendChild(renderField('Over Limit', overLimitRow));
@@ -166,9 +173,9 @@ function renderEntryForm(state, actions) {
   
   // Notes (uncontrolled)
   form.appendChild(renderField('Notes', h('textarea', {
-    id: 'notes-input',
+    id: FORM_IDS.NOTES_INPUT,
     value: state.draft.notes || '',
-    maxlength: '500',
+    maxlength: MAX_NOTES_LENGTH.toString(),
     rows: '3',
     placeholder: 'Optional notes...'
   })));
@@ -215,11 +222,11 @@ function renderHistoryTable(state, actions) {
   // Sort by date DESC
   entries = entries.slice().sort((a, b) => b.date.localeCompare(a.date));
   
-  // Show first 100
-  const displayed = entries.slice(0, Math.min(100, entries.length));
+  // Show first MAX_HISTORY_ENTRIES
+  const displayed = entries.slice(0, Math.min(MAX_HISTORY_ENTRIES, entries.length));
   
   if (!displayed.length) {
-    return h('div', { class: 'muted' }, 'No entries yet');
+    return h('div', { class: 'muted' }, EMPTY_STATES.NO_ENTRIES);
   }
   
   const table = h('table', { class: 'history-table' });
@@ -267,8 +274,9 @@ function renderHistoryTable(state, actions) {
   container.appendChild(table);
   
   // Load more button (placeholder)
-  if (entries.length > 100) {
-    container.appendChild(h('button', { class: 'btn-secondary' }, 'Load 100 More'));
+  if (entries.length > MAX_HISTORY_ENTRIES) {
+    const remaining = entries.length - MAX_HISTORY_ENTRIES;
+    container.appendChild(h('button', { class: 'btn-secondary' }, `Load ${Math.min(remaining, MAX_HISTORY_ENTRIES)} More`));
   }
   
   return container;

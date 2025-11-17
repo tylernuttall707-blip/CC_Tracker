@@ -1,5 +1,6 @@
 import { h } from './dom-utils.js';
 import { fmtUSD, fmtPercent, getLatestEntries, calcUtilization, calcDaysTillDue, calcClosesIn, calcEstInterest, todayISO, daysBetween } from './utils.js';
+import { DAYS_FOR_DUE_SOON, CALENDAR_WEEKS, DAYS_IN_WEEK, EMPTY_STATES } from './constants.js';
 
 export function renderDashboard(state, actions) {
   const container = h('div', { class: 'dashboard' });
@@ -48,34 +49,37 @@ export function renderDashboard(state, actions) {
 
 function renderKPIs(state) {
   const latestEntries = getLatestEntries(state.cards, state.entries);
-  
+
   let totalBalance = 0;
   let totalAvailable = 0;
   let totalRemaining = 0;
   let utilizationSum = 0;
+  let cardsWithEntries = 0;
   let dueSoon = 0;
   let overLimitCount = 0;
-  
+
   state.cards.forEach(card => {
     const entry = latestEntries.get(card.id);
     if (!entry) return;
-    
+
+    cardsWithEntries++;
     totalBalance += entry.currentBalance || 0;
     totalAvailable += entry.availableCredit || 0;
     totalRemaining += entry.remainingStmt || 0;
     utilizationSum += calcUtilization(entry, card);
-    
+
     const daysTillDue = calcDaysTillDue(entry);
-    if (daysTillDue !== null && daysTillDue <= 7) {
+    if (daysTillDue !== null && daysTillDue <= DAYS_FOR_DUE_SOON) {
       dueSoon += entry.remainingStmt || 0;
     }
-    
+
     if (entry.overLimit && entry.overLimit > 0) {
       overLimitCount++;
     }
   });
-  
-  const avgUtilization = state.cards.length > 0 ? utilizationSum / state.cards.length : 0;
+
+  // Only calculate average for cards with entries
+  const avgUtilization = cardsWithEntries > 0 ? utilizationSum / cardsWithEntries : 0;
   
   const grid = h('div', { class: 'kpi-grid' });
   
@@ -83,7 +87,7 @@ function renderKPIs(state) {
   grid.appendChild(renderKPI('Total Available', fmtUSD(totalAvailable)));
   grid.appendChild(renderKPI('Total Remaining', fmtUSD(totalRemaining)));
   grid.appendChild(renderKPI('Avg Utilization', fmtPercent(avgUtilization)));
-  grid.appendChild(renderKPI('Due Soon (≤7d)', fmtUSD(dueSoon)));
+  grid.appendChild(renderKPI(`Due Soon (≤${DAYS_FOR_DUE_SOON}d)`, fmtUSD(dueSoon)));
   grid.appendChild(renderKPI('Over Limit', overLimitCount.toString()));
   
   return grid;
@@ -98,7 +102,7 @@ function renderKPI(label, value) {
 
 function renderUtilizationTable(state, actions) {
   if (!state.cards.length) {
-    return h('div', { class: 'muted' }, 'No cards added yet');
+    return h('div', { class: 'muted' }, EMPTY_STATES.NO_CARDS_ADDED);
   }
   
   const latestEntries = getLatestEntries(state.cards, state.entries);
@@ -154,12 +158,12 @@ function renderPaymentCalendar(state) {
   });
   calendar.appendChild(headerRow);
   
-  // 4 weeks = 28 days
-  for (let week = 0; week < 4; week++) {
+  // Calendar weeks
+  for (let week = 0; week < CALENDAR_WEEKS; week++) {
     const row = h('div', { class: 'calendar-row' });
-    for (let day = 0; day < 7; day++) {
+    for (let day = 0; day < DAYS_IN_WEEK; day++) {
       const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + week * 7 + day);
+      date.setDate(startOfWeek.getDate() + week * DAYS_IN_WEEK + day);
       
       const dateStr = date.toISOString().split('T')[0];
       const isToday = dateStr === todayISO();
@@ -203,7 +207,7 @@ function renderPaymentCalendar(state) {
 
 function renderCardsOverview(state, actions) {
   if (!state.cards.length) {
-    return h('div', { class: 'muted' }, 'No cards added yet');
+    return h('div', { class: 'muted' }, EMPTY_STATES.NO_CARDS_ADDED);
   }
   
   const latestEntries = getLatestEntries(state.cards, state.entries);
@@ -234,7 +238,7 @@ function renderCardPanel(card, entry, actions) {
   panel.appendChild(logBtn);
   
   if (!entry) {
-    panel.appendChild(h('div', { class: 'muted' }, 'No entries yet'));
+    panel.appendChild(h('div', { class: 'muted' }, EMPTY_STATES.NO_ENTRIES));
     return panel;
   }
   

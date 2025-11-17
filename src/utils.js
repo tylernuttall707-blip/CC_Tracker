@@ -1,15 +1,30 @@
 // Date helpers
 export function todayISO() {
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export function daysBetween(dateA, dateB) {
   if (!dateA || !dateB) return null;
-  const a = new Date(dateA + 'T00:00:00');
-  const b = new Date(dateB + 'T00:00:00');
-  const diff = b - a;
-  return Math.round(diff / (1000 * 60 * 60 * 24));
+  try {
+    // Parse dates in local timezone to avoid timezone issues
+    const [yearA, monthA, dayA] = dateA.split('-').map(Number);
+    const [yearB, monthB, dayB] = dateB.split('-').map(Number);
+    const a = new Date(yearA, monthA - 1, dayA);
+    const b = new Date(yearB, monthB - 1, dayB);
+
+    // Validate dates
+    if (isNaN(a.getTime()) || isNaN(b.getTime())) return null;
+
+    const diff = b - a;
+    return Math.round(diff / (1000 * 60 * 60 * 24));
+  } catch (error) {
+    console.error('Error calculating days between dates:', error);
+    return null;
+  }
 }
 
 // Formatters
@@ -28,8 +43,15 @@ export function fmtPercent(number) {
 
 // Calculations (from latest entry + card)
 export function calcUtilization(entry, card) {
-  if (!entry || !card || !card.limit) return 0;
-  return (entry.currentBalance / card.limit) * 100;
+  if (!entry || !card || !card.limit || card.limit <= 0) return 0;
+
+  const balance = entry.currentBalance || 0;
+  // Handle negative balances (credits)
+  if (balance < 0) return 0;
+
+  const utilization = (balance / card.limit) * 100;
+  // Cap at 100% for display purposes (over limit shows separately)
+  return Math.min(utilization, 999.9); // Allow showing over 100% but cap at reasonable display value
 }
 
 export function calcDaysTillDue(entry) {
@@ -43,8 +65,21 @@ export function calcClosesIn(entry) {
 }
 
 export function calcEstInterest(entry, card) {
-  if (!entry || !card || !card.apr) return 0;
-  return (card.apr / 100 / 12) * entry.currentBalance;
+  if (!entry || !card || !card.apr || card.apr <= 0) return 0;
+
+  const balance = entry.currentBalance || 0;
+  // No interest on negative balances (credits) or zero balance
+  if (balance <= 0) return 0;
+
+  // Use average daily balance method (more accurate than simple monthly)
+  // Assumes balance is carried for full month
+  const dailyRate = (card.apr / 100) / 365;
+  const avgDaysInMonth = 30.44; // Average days in month (365/12)
+
+  // Daily compound interest formula: Principal * ((1 + daily_rate)^days - 1)
+  const interest = balance * (Math.pow(1 + dailyRate, avgDaysInMonth) - 1);
+
+  return Math.max(0, interest);
 }
 
 // Entry helpers

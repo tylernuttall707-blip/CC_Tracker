@@ -101,6 +101,11 @@ body.dark .theme-toggle:hover {
   margin-bottom: 1.5rem;
   box-shadow: var(--shadow);
   border: 1px solid var(--border);
+  transition: box-shadow 0.2s ease;
+}
+
+.panel:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
 .panel h2, .panel h3 {
@@ -183,6 +188,12 @@ body.dark .theme-toggle:hover {
   background: rgba(79, 124, 255, 0.05);
   border-radius: 8px;
   border: 1px solid var(--border);
+  transition: all 0.2s ease;
+}
+
+.kpi:hover {
+  background: rgba(79, 124, 255, 0.08);
+  transform: scale(1.02);
 }
 
 .kpi-label {
@@ -252,10 +263,18 @@ body.dark tr:hover {
   color: var(--primary);
   cursor: pointer;
   text-decoration: underline;
+  transition: color 0.2s ease;
 }
 
 .link:hover {
   color: #3d64d9;
+  text-decoration-thickness: 2px;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Calendar */
@@ -351,12 +370,17 @@ body.dark .calendar-header {
   padding: 1rem;
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
-  transition: box-shadow 0.2s;
+  transition: all 0.3s ease;
   position: relative;
 }
 
 .card-panel:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+body.dark .card-panel:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .card-panel h3 {
@@ -452,16 +476,37 @@ button {
   border-radius: 8px;
   border: none;
   padding: 0.5rem 1rem;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.3);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-primary {
   background: var(--primary);
   color: white;
+  box-shadow: 0 1px 3px rgba(79, 124, 255, 0.3);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   background: #3d64d9;
+  box-shadow: 0 2px 6px rgba(79, 124, 255, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -474,11 +519,12 @@ body.dark .btn-secondary {
   background: var(--panel-bg);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
+  border-color: var(--primary);
 }
 
-body.dark .btn-secondary:hover {
+body.dark .btn-secondary:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -538,12 +584,33 @@ input, select, textarea {
   font-size: 14px;
   background: var(--bg);
   color: var(--text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:hover:not(:disabled), select:hover:not(:disabled), textarea:hover:not(:disabled) {
+  border-color: var(--primary);
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+}
+
+input:invalid, select:invalid, textarea:invalid {
+  border-color: #DC2626;
+}
+
+input:disabled, select:disabled, textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark input:disabled,
+body.dark select:disabled,
+body.dark textarea:disabled {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 textarea {
@@ -593,7 +660,13 @@ textarea {
 }
 
 .color-preset:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-preset:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
 }
 
 /* Cards Page */
@@ -658,6 +731,9 @@ textarea {
 /* Utility Classes */
 .muted {
   color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem 1rem;
 }
 
 .small {
