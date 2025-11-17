@@ -4,6 +4,7 @@ import { renderDashboard } from './dashboard.js';
 import { renderCards } from './cards.js';
 import { renderLog } from './log.js';
 import { todayISO } from './utils.js';
+import { exportToJSON, importFromJSON, mergeImportedData } from './data-io.js';
 import {
   FORM_IDS,
   VALIDATION_MESSAGES,
@@ -193,6 +194,38 @@ const actions = {
   deleteEntry(entryId) {
     const entries = state.entries.filter(e => e.id !== entryId);
     updateState({ entries });
+  },
+
+  // Data import/export actions
+  async exportData() {
+    const success = exportToJSON(state, `cc-tracker-backup-${new Date().toISOString().split('T')[0]}.json`);
+    if (success) {
+      alert('Data exported successfully! Check your downloads folder.');
+    } else {
+      alert('Failed to export data. Please try again.');
+    }
+  },
+
+  async importData() {
+    if (!confirm('This will replace all current data. Are you sure you want to continue?\n\nTip: Export your current data first as a backup!')) {
+      return;
+    }
+
+    try {
+      const importedData = await importFromJSON();
+      if (!importedData) {
+        // User cancelled
+        return;
+      }
+
+      const newState = mergeImportedData(state, importedData, 'replace');
+      state = newState;
+      save(state);
+      render();
+      alert('Data imported successfully!');
+    } catch (error) {
+      alert('Failed to import data: ' + error.message);
+    }
   }
 };
 
@@ -220,25 +253,45 @@ function render() {
 
 function renderNav() {
   const nav = h('nav', { class: 'nav' });
-  
+
   // Left side - tabs
   const tabs = h('div', { class: 'nav-tabs' });
-  
+
   tabs.appendChild(renderTab('Dashboard', 'dashboard'));
   tabs.appendChild(renderTab('Cards', 'cards'));
   tabs.appendChild(renderTab('Daily Log', 'log'));
-  
+
   nav.appendChild(tabs);
-  
-  // Right side - theme toggle
+
+  // Right side - controls
+  const controls = h('div', { class: 'nav-controls' });
+
+  // Export button
+  const exportBtn = h('button', {
+    class: 'nav-btn',
+    onclick: actions.exportData,
+    title: 'Export data to JSON file'
+  }, '📥 Export');
+  controls.appendChild(exportBtn);
+
+  // Import button
+  const importBtn = h('button', {
+    class: 'nav-btn',
+    onclick: actions.importData,
+    title: 'Import data from JSON file'
+  }, '📤 Import');
+  controls.appendChild(importBtn);
+
+  // Theme toggle
   const themeBtn = h('button', {
     class: 'theme-toggle',
     onclick: actions.toggleTheme,
     title: 'Toggle theme'
   }, state.theme === 'light' ? '🌙' : '☀️');
-  
-  nav.appendChild(themeBtn);
-  
+  controls.appendChild(themeBtn);
+
+  nav.appendChild(controls);
+
   return nav;
 }
 
