@@ -1,10 +1,6 @@
 import { h, uid } from './dom-utils.js';
 import { fmtUSD } from './utils.js';
-
-const PRESET_COLORS = [
-  '#4F7CFF', '#FF6B6B', '#51CF66', '#FFD43B', 
-  '#9775FA', '#FF8787', '#339AF0', '#FFA94D'
-];
+import { PRESET_COLORS, ISSUERS, MAX_CARD_NAME_LENGTH, EMPTY_STATES } from './constants.js';
 
 export function renderCards(state, actions) {
   const container = h('div', { class: 'cards-page' });
@@ -17,7 +13,7 @@ export function renderCards(state, actions) {
   container.appendChild(header);
   
   if (!state.cards.length) {
-    container.appendChild(h('div', { class: 'muted' }, 'No cards yet. Click "Add Card" to get started.'));
+    container.appendChild(h('div', { class: 'muted' }, EMPTY_STATES.NO_CARDS));
     return container;
   }
   
@@ -53,7 +49,7 @@ function renderCardForm(card, state, actions) {
   grid.appendChild(renderField('Card Name', h('input', {
     type: 'text',
     value: card.name,
-    maxlength: '50',
+    maxlength: MAX_CARD_NAME_LENGTH.toString(),
     onblur: (e) => actions.updateCard(card.id, { name: e.target.value })
   })));
   
@@ -62,9 +58,7 @@ function renderCardForm(card, state, actions) {
     value: card.issuer,
     onchange: (e) => actions.updateCard(card.id, { issuer: e.target.value })
   },
-    h('option', { value: 'Chase' }, 'Chase'),
-    h('option', { value: 'AmEx' }, 'AmEx'),
-    h('option', { value: 'Other' }, 'Other')
+    ...ISSUERS.map(issuer => h('option', { value: issuer }, issuer))
   )));
   
   // Credit Limit - use onblur

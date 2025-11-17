@@ -4,6 +4,16 @@ import { renderDashboard } from './dashboard.js';
 import { renderCards } from './cards.js';
 import { renderLog } from './log.js';
 import { todayISO } from './utils.js';
+import {
+  FORM_IDS,
+  VALIDATION_MESSAGES,
+  DEFAULT_CARD_NAME,
+  DEFAULT_ISSUER,
+  DEFAULT_CREDIT_LIMIT,
+  DEFAULT_APR,
+  DEFAULT_COLOR,
+  DEFAULT_UTIL_TARGET
+} from './constants.js';
 
 let state = null;
 
@@ -42,12 +52,12 @@ const actions = {
   addCard() {
     const newCard = {
       id: uid(),
-      name: 'New Card',
-      issuer: 'Chase',
-      limit: 10000,
-      apr: 19.99,
-      color: '#4F7CFF',
-      utilTarget: 30
+      name: DEFAULT_CARD_NAME,
+      issuer: DEFAULT_ISSUER,
+      limit: DEFAULT_CREDIT_LIMIT,
+      apr: DEFAULT_APR,
+      color: DEFAULT_COLOR,
+      utilTarget: DEFAULT_UTIL_TARGET
     };
     updateState({ cards: [...state.cards, newCard] });
   },
@@ -75,30 +85,31 @@ const actions = {
   },
   
   clearDraft() {
-    // Reset form inputs
-    const form = document.getElementById('entry-form');
+    // Helper to clear form fields
+    const clearFormFields = () => {
+      const fields = [
+        { id: FORM_IDS.DATE_INPUT, value: todayISO() },
+        { id: FORM_IDS.CURRENT_BALANCE_INPUT, value: '' },
+        { id: FORM_IDS.REMAINING_STMT_INPUT, value: '' },
+        { id: FORM_IDS.MIN_PAYMENT_INPUT, value: '' },
+        { id: FORM_IDS.AVAILABLE_CREDIT_INPUT, value: '' },
+        { id: FORM_IDS.OVER_LIMIT_INPUT, value: '' },
+        { id: FORM_IDS.STMT_END_INPUT, value: '' },
+        { id: FORM_IDS.DUE_DATE_INPUT, value: '' },
+        { id: FORM_IDS.NOTES_INPUT, value: '' }
+      ];
+
+      fields.forEach(({ id, value }) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+      });
+    };
+
+    const form = document.getElementById(FORM_IDS.ENTRY_FORM);
     if (form) {
-      const dateInput = document.getElementById('date-input');
-      const currentBalanceInput = document.getElementById('current-balance-input');
-      const remainingStmtInput = document.getElementById('remaining-stmt-input');
-      const minPaymentInput = document.getElementById('min-payment-input');
-      const availableCreditInput = document.getElementById('available-credit-input');
-      const overLimitInput = document.getElementById('over-limit-input');
-      const stmtEndInput = document.getElementById('stmt-end-input');
-      const dueDateInput = document.getElementById('due-date-input');
-      const notesInput = document.getElementById('notes-input');
-      
-      if (dateInput) dateInput.value = todayISO();
-      if (currentBalanceInput) currentBalanceInput.value = '';
-      if (remainingStmtInput) remainingStmtInput.value = '';
-      if (minPaymentInput) minPaymentInput.value = '';
-      if (availableCreditInput) availableCreditInput.value = '';
-      if (overLimitInput) overLimitInput.value = '';
-      if (stmtEndInput) stmtEndInput.value = '';
-      if (dueDateInput) dueDateInput.value = '';
-      if (notesInput) notesInput.value = '';
+      clearFormFields();
     }
-    
+
     // Update state to reset draft
     updateState({
       draft: {
@@ -116,47 +127,65 @@ const actions = {
   },
   
   saveEntry() {
+    // Helper to get form values
+    const getFormValues = () => {
+      const getValue = (id) => document.getElementById(id)?.value || '';
+      const getNumValue = (id) => {
+        const val = getValue(id);
+        return val ? parseFloat(val) : null;
+      };
+
+      return {
+        date: getValue(FORM_IDS.DATE_INPUT),
+        currentBalance: getNumValue(FORM_IDS.CURRENT_BALANCE_INPUT),
+        remainingStmt: getNumValue(FORM_IDS.REMAINING_STMT_INPUT),
+        minPayment: getNumValue(FORM_IDS.MIN_PAYMENT_INPUT),
+        availableCredit: getNumValue(FORM_IDS.AVAILABLE_CREDIT_INPUT),
+        overLimit: getNumValue(FORM_IDS.OVER_LIMIT_INPUT),
+        statementEnd: getValue(FORM_IDS.STMT_END_INPUT) || null,
+        dueDate: getValue(FORM_IDS.DUE_DATE_INPUT) || null,
+        notes: getValue(FORM_IDS.NOTES_INPUT)
+      };
+    };
+
     // Validate
     if (!state.selectedCardId) {
-      alert('Please select a card');
+      alert(VALIDATION_MESSAGES.NO_CARD_SELECTED);
       return;
     }
-    
-    // Read values from form inputs
-    const dateInput = document.getElementById('date-input');
-    const currentBalanceInput = document.getElementById('current-balance-input');
-    const remainingStmtInput = document.getElementById('remaining-stmt-input');
-    const minPaymentInput = document.getElementById('min-payment-input');
-    const availableCreditInput = document.getElementById('available-credit-input');
-    const overLimitInput = document.getElementById('over-limit-input');
-    const stmtEndInput = document.getElementById('stmt-end-input');
-    const dueDateInput = document.getElementById('due-date-input');
-    const notesInput = document.getElementById('notes-input');
-    
-    if (!dateInput || !dateInput.value) {
-      alert('Please enter a date');
+
+    const formValues = getFormValues();
+
+    if (!formValues.date) {
+      alert(VALIDATION_MESSAGES.NO_DATE);
       return;
     }
-    if (!currentBalanceInput || !currentBalanceInput.value) {
-      alert('Please enter current balance');
+
+    if (formValues.currentBalance === null) {
+      alert(VALIDATION_MESSAGES.NO_CURRENT_BALANCE);
       return;
     }
-    
+
+    // Validate non-negative values
+    if (formValues.currentBalance < 0 && !confirm('Current balance is negative (credit balance). Continue?')) {
+      return;
+    }
+
     // Create entry
     const entry = {
       id: uid(),
       cardId: state.selectedCardId,
-      date: dateInput.value,
-      currentBalance: parseFloat(currentBalanceInput.value) || 0,
-      remainingStmt: parseFloat(remainingStmtInput?.value) || 0,
-      minPayment: parseFloat(minPaymentInput?.value) || 0,
-      availableCredit: parseFloat(availableCreditInput?.value) || 0,
-      overLimit: overLimitInput?.value ? parseFloat(overLimitInput.value) : null,
-      statementEnd: stmtEndInput?.value || null,
-      dueDate: dueDateInput?.value || null,
-      notes: notesInput?.value || ''
+      date: formValues.date,
+      currentBalance: formValues.currentBalance,
+      remainingStmt: formValues.remainingStmt || 0,
+      minPayment: formValues.minPayment || 0,
+      availableCredit: formValues.availableCredit || 0,
+      overLimit: formValues.overLimit,
+      statementEnd: formValues.statementEnd,
+      dueDate: formValues.dueDate,
+      notes: formValues.notes
     };
-    
+
     updateState({ entries: [...state.entries, entry] });
     actions.clearDraft();
   },

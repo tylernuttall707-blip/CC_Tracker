@@ -1,13 +1,29 @@
 import { uid } from './dom-utils.js';
 import { todayISO } from './utils.js';
-
-const STORAGE_KEY = 'credit-card-tracker-v1';
+import {
+  STORAGE_KEY,
+  DEFAULT_ISSUER,
+  DEFAULT_CREDIT_LIMIT,
+  DEFAULT_APR,
+  DEFAULT_COLOR,
+  DEFAULT_UTIL_TARGET
+} from './constants.js';
 
 export function save(state) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const serialized = JSON.stringify(state);
+    localStorage.setItem(STORAGE_KEY, serialized);
+    return true;
   } catch (e) {
     console.error('Failed to save state:', e);
+
+    // Handle quota exceeded error
+    if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      alert('Storage quota exceeded. Please delete some old entries to free up space.');
+    } else {
+      alert('Failed to save data. Your changes may not be persisted.');
+    }
+    return false;
   }
 }
 
@@ -15,10 +31,17 @@ export function load() {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     if (data) {
-      return JSON.parse(data);
+      const parsed = JSON.parse(data);
+      // Validate basic structure
+      if (parsed && typeof parsed === 'object' && Array.isArray(parsed.cards) && Array.isArray(parsed.entries)) {
+        return parsed;
+      } else {
+        console.warn('Invalid data structure in localStorage, creating fresh seed data');
+      }
     }
   } catch (e) {
     console.error('Failed to load state:', e);
+    alert('Failed to load saved data. Starting with fresh data.');
   }
   // Return fresh seed data
   return createSeedData();
@@ -33,11 +56,11 @@ function createSeedData() {
       {
         id: cardId,
         name: 'Sample Card',
-        issuer: 'Chase',
-        limit: 10000,
-        apr: 19.99,
-        color: '#4F7CFF',
-        utilTarget: 30
+        issuer: DEFAULT_ISSUER,
+        limit: DEFAULT_CREDIT_LIMIT,
+        apr: DEFAULT_APR,
+        color: DEFAULT_COLOR,
+        utilTarget: DEFAULT_UTIL_TARGET
       }
     ],
     entries: [
