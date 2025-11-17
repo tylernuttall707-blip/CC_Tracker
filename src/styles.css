@@ -7,6 +7,7 @@
 
 :root {
   --primary: #4F7CFF;
+  --primary-hover: #3d64d9;
   --text: #1F2937;
   --muted: #6B7280;
   --border: #E5E7EB;
@@ -16,11 +17,14 @@
 }
 
 body.dark {
-  --text: #F9FAFB;
-  --muted: #9CA3AF;
-  --border: #374151;
-  --bg: #111827;
-  --panel-bg: #1F2937;
+  --primary: #58a6ff;
+  --primary-hover: #79c0ff;
+  --text: #c9d1d9;
+  --muted: #8b949e;
+  --border: #30363d;
+  --bg: #0d1117;
+  --panel-bg: #161b22;
+  --shadow: 0 0 transparent;
 }
 
 body {
@@ -63,6 +67,10 @@ body {
   color: var(--primary);
 }
 
+body.dark .nav-tab:hover {
+  background: rgba(177, 186, 196, 0.12);
+}
+
 .nav-tab.active {
   background: var(--primary);
   color: white;
@@ -83,7 +91,7 @@ body {
 }
 
 body.dark .theme-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(177, 186, 196, 0.12);
 }
 
 /* Container */
@@ -106,6 +114,10 @@ body.dark .theme-toggle:hover {
 
 .panel:hover {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+body.dark .panel:hover {
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 .panel h2, .panel h3 {
@@ -191,9 +203,18 @@ body.dark .theme-toggle:hover {
   transition: all 0.2s ease;
 }
 
+body.dark .kpi {
+  background: rgba(88, 166, 255, 0.1);
+}
+
 .kpi:hover {
   background: rgba(79, 124, 255, 0.08);
   transform: scale(1.02);
+}
+
+body.dark .kpi:hover {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: rgba(88, 166, 255, 0.3);
 }
 
 .kpi-label {
@@ -267,7 +288,7 @@ body.dark tr:hover {
 }
 
 .link:hover {
-  color: #3d64d9;
+  color: var(--primary-hover);
   text-decoration-thickness: 2px;
 }
 
@@ -319,6 +340,11 @@ body.dark .calendar-header {
 
 .calendar-cell.today {
   background: rgba(79, 124, 255, 0.08);
+  border: 2px solid var(--primary);
+}
+
+body.dark .calendar-cell.today {
+  background: rgba(88, 166, 255, 0.15);
   border: 2px solid var(--primary);
 }
 
@@ -455,9 +481,21 @@ body.dark .card-panel:hover {
   color: #991B1B;
 }
 
+body.dark .badge-red {
+  background: rgba(248, 81, 73, 0.15);
+  color: #ff7b72;
+  border: 1px solid rgba(248, 81, 73, 0.4);
+}
+
 .badge-yellow {
   background: #FEF3C7;
   color: #92400E;
+}
+
+body.dark .badge-yellow {
+  background: rgba(187, 128, 9, 0.15);
+  color: #d29922;
+  border: 1px solid rgba(187, 128, 9, 0.4);
 }
 
 .card-badges {
@@ -484,6 +522,10 @@ button:focus-visible {
   box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.3);
 }
 
+body.dark button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.4);
+}
+
 button:active {
   transform: scale(0.98);
 }
@@ -500,7 +542,7 @@ button:disabled {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #3d64d9;
+  background: var(--primary-hover);
   box-shadow: 0 2px 6px rgba(79, 124, 255, 0.4);
   transform: translateY(-1px);
 }
@@ -587,6 +629,13 @@ input, select, textarea {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+body.dark input,
+body.dark select,
+body.dark textarea {
+  background: #0d1117;
+  border-color: #30363d;
+}
+
 input:hover:not(:disabled), select:hover:not(:disabled), textarea:hover:not(:disabled) {
   border-color: var(--primary);
 }
@@ -595,6 +644,13 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(79, 124, 255, 0.1);
+}
+
+body.dark input:focus,
+body.dark select:focus,
+body.dark textarea:focus {
+  border-color: #58a6ff;
+  box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
 }
 
 input:invalid, select:invalid, textarea:invalid {
