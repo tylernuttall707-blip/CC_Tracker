@@ -83,7 +83,56 @@ const actions = {
   selectCard(cardId) {
     updateState({ selectedCardId: cardId });
   },
-  
+
+  startEditingEntry(entryId) {
+    const entry = state.entries.find(e => e.id === entryId);
+    if (!entry) return;
+
+    // Populate form fields with entry data
+    const populateFormFields = () => {
+      const fields = [
+        { id: FORM_IDS.DATE_INPUT, value: entry.date },
+        { id: FORM_IDS.CURRENT_BALANCE_INPUT, value: entry.currentBalance },
+        { id: FORM_IDS.REMAINING_STMT_INPUT, value: entry.remainingStmt },
+        { id: FORM_IDS.MIN_PAYMENT_INPUT, value: entry.minPayment },
+        { id: FORM_IDS.AVAILABLE_CREDIT_INPUT, value: entry.availableCredit },
+        { id: FORM_IDS.OVER_LIMIT_INPUT, value: entry.overLimit || '' },
+        { id: FORM_IDS.STMT_END_INPUT, value: entry.statementEnd || '' },
+        { id: FORM_IDS.DUE_DATE_INPUT, value: entry.dueDate || '' },
+        { id: FORM_IDS.NOTES_INPUT, value: entry.notes || '' }
+      ];
+
+      fields.forEach(({ id, value }) => {
+        const element = document.getElementById(id);
+        if (element) element.value = value;
+      });
+    };
+
+    populateFormFields();
+
+    // Update state with editing info
+    updateState({
+      editingEntryId: entryId,
+      selectedCardId: entry.cardId,
+      draft: {
+        date: entry.date,
+        currentBalance: entry.currentBalance,
+        remainingStmt: entry.remainingStmt,
+        minPayment: entry.minPayment,
+        availableCredit: entry.availableCredit,
+        overLimit: entry.overLimit || '',
+        statementEnd: entry.statementEnd || '',
+        dueDate: entry.dueDate || '',
+        notes: entry.notes || ''
+      }
+    });
+  },
+
+  cancelEdit() {
+    actions.clearDraft();
+    updateState({ editingEntryId: null });
+  },
+
   clearDraft() {
     // Helper to clear form fields
     const clearFormFields = () => {
@@ -110,8 +159,9 @@ const actions = {
       clearFormFields();
     }
 
-    // Update state to reset draft
+    // Update state to reset draft and editing
     updateState({
+      editingEntryId: null,
       draft: {
         date: todayISO(),
         currentBalance: '',
@@ -171,22 +221,46 @@ const actions = {
       return;
     }
 
-    // Create entry
-    const entry = {
-      id: uid(),
-      cardId: state.selectedCardId,
-      date: formValues.date,
-      currentBalance: formValues.currentBalance,
-      remainingStmt: formValues.remainingStmt || 0,
-      minPayment: formValues.minPayment || 0,
-      availableCredit: formValues.availableCredit || 0,
-      overLimit: formValues.overLimit,
-      statementEnd: formValues.statementEnd,
-      dueDate: formValues.dueDate,
-      notes: formValues.notes
-    };
+    // Check if we're editing or creating
+    if (state.editingEntryId) {
+      // Update existing entry
+      const entries = state.entries.map(e => {
+        if (e.id === state.editingEntryId) {
+          return {
+            ...e,
+            cardId: state.selectedCardId,
+            date: formValues.date,
+            currentBalance: formValues.currentBalance,
+            remainingStmt: formValues.remainingStmt || 0,
+            minPayment: formValues.minPayment || 0,
+            availableCredit: formValues.availableCredit || 0,
+            overLimit: formValues.overLimit,
+            statementEnd: formValues.statementEnd,
+            dueDate: formValues.dueDate,
+            notes: formValues.notes
+          };
+        }
+        return e;
+      });
+      updateState({ entries, editingEntryId: null });
+    } else {
+      // Create new entry
+      const entry = {
+        id: uid(),
+        cardId: state.selectedCardId,
+        date: formValues.date,
+        currentBalance: formValues.currentBalance,
+        remainingStmt: formValues.remainingStmt || 0,
+        minPayment: formValues.minPayment || 0,
+        availableCredit: formValues.availableCredit || 0,
+        overLimit: formValues.overLimit,
+        statementEnd: formValues.statementEnd,
+        dueDate: formValues.dueDate,
+        notes: formValues.notes
+      };
+      updateState({ entries: [...state.entries, entry] });
+    }
 
-    updateState({ entries: [...state.entries, entry] });
     actions.clearDraft();
   },
   

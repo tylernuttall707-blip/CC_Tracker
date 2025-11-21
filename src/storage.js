@@ -79,6 +79,7 @@ function createSeedData() {
       }
     ],
     selectedCardId: cardId,
+    editingEntryId: null,
     draft: {
       date: todayISO(),
       currentBalance: '',

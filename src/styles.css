@@ -586,6 +586,23 @@ body.dark .btn-delete:hover {
   background: rgba(220, 38, 38, 0.2);
 }
 
+.btn-edit {
+  background: transparent;
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 0.25rem 0.5rem;
+  font-size: 12px;
+  margin-right: 0.25rem;
+}
+
+.btn-edit:hover {
+  background: rgba(79, 124, 255, 0.1);
+}
+
+body.dark .btn-edit:hover {
+  background: rgba(88, 166, 255, 0.2);
+}
+
 .btn-suggest {
   padding: 0.25rem 0.5rem;
   font-size: 12px;
@@ -781,6 +798,10 @@ textarea {
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions-cell {
   white-space: nowrap;
 }
 
