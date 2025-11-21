@@ -182,14 +182,20 @@ function renderEntryForm(state, actions) {
   
   // Actions
   const actions_row = h('div', { class: 'form-actions' });
+
+  // Show different button text based on editing mode
+  const isEditing = state.editingEntryId !== null;
   actions_row.appendChild(h('button', {
     class: 'btn-primary',
     onclick: () => actions.saveEntry()
-  }, 'Save Entry'));
+  }, isEditing ? 'Update Entry' : 'Save Entry'));
+
+  // Show Cancel button when editing, Clear when creating
   actions_row.appendChild(h('button', {
     class: 'btn-secondary',
-    onclick: () => actions.clearDraft()
-  }, 'Clear'));
+    onclick: () => isEditing ? actions.cancelEdit() : actions.clearDraft()
+  }, isEditing ? 'Cancel' : 'Clear'));
+
   form.appendChild(actions_row);
   
   return form;
@@ -234,18 +240,18 @@ function renderHistoryTable(state, actions) {
   // Header
   const thead = h('thead');
   const headerRow = h('tr');
-  ['Date', 'Card', 'Current Balance', 'Remaining Stmt', 'Min Payment', 'Available', 'Stmt End', 'Due Date', 'Notes', ''].forEach(label => {
+  ['Date', 'Card', 'Current Balance', 'Remaining Stmt', 'Min Payment', 'Available', 'Stmt End', 'Due Date', 'Notes', 'Actions'].forEach(label => {
     headerRow.appendChild(h('th', {}, label));
   });
   thead.appendChild(headerRow);
   table.appendChild(thead);
-  
+
   // Body
   const tbody = h('tbody');
   displayed.forEach(entry => {
     const card = state.cards.find(c => c.id === entry.cardId);
     const row = h('tr');
-    
+
     row.appendChild(h('td', {}, entry.date));
     row.appendChild(h('td', {}, card ? card.name : 'Unknown'));
     row.appendChild(h('td', {}, fmtUSD(entry.currentBalance)));
@@ -255,17 +261,37 @@ function renderHistoryTable(state, actions) {
     row.appendChild(h('td', {}, entry.statementEnd || '--'));
     row.appendChild(h('td', {}, entry.dueDate || '--'));
     row.appendChild(h('td', { class: 'notes-cell' }, entry.notes || '--'));
-    
+
+    // Actions cell with edit and delete buttons
+    const actionsCell = h('td', { class: 'actions-cell' });
+
+    const editBtn = h('button', {
+      class: 'btn-edit small',
+      onclick: () => {
+        actions.startEditingEntry(entry.id);
+        // Scroll to the form
+        const form = document.getElementById('entry-form');
+        if (form) {
+          form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      title: 'Edit entry'
+    }, '✏️');
+    actionsCell.appendChild(editBtn);
+
     const deleteBtn = h('button', {
       class: 'btn-delete small',
       onclick: () => {
         if (confirm('Delete this entry?')) {
           actions.deleteEntry(entry.id);
         }
-      }
+      },
+      title: 'Delete entry'
     }, '🗑️');
-    row.appendChild(h('td', {}, deleteBtn));
-    
+    actionsCell.appendChild(deleteBtn);
+
+    row.appendChild(actionsCell);
+
     tbody.appendChild(row);
   });
   table.appendChild(tbody);
