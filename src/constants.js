@@ -25,7 +25,7 @@ export const PRESET_COLORS = [
 ];
 
 // Issuer Options
-export const ISSUERS = ['Chase', 'AmEx', 'Discover', 'Citi', 'Capital One', 'Other'];
+export const ISSUERS = ['Chase', 'AmEx', 'Discover', 'Citi', 'Capital One', 'Zions Bank', 'Other'];
 
 // Calculation Constants
 export const MONTHS_IN_YEAR = 12;
