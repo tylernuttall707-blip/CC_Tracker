@@ -144,43 +144,60 @@ function renderUtilizationTable(state, actions) {
 
 function renderPaymentCalendar(state) {
   const today = new Date();
-  
+
   // Find the start of this week (Sunday)
   const startOfWeek = new Date(today);
   startOfWeek.setDate(today.getDate() - today.getDay());
-  
+
   const calendar = h('div', { class: 'calendar' });
-  
+
   // Day headers
   const headerRow = h('div', { class: 'calendar-row' });
   ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
     headerRow.appendChild(h('div', { class: 'calendar-header' }, day));
   });
   calendar.appendChild(headerRow);
-  
+
   // Calendar weeks
   for (let week = 0; week < CALENDAR_WEEKS; week++) {
     const row = h('div', { class: 'calendar-row' });
     for (let day = 0; day < DAYS_IN_WEEK; day++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + week * DAYS_IN_WEEK + day);
-      
+
       const dateStr = date.toISOString().split('T')[0];
       const isToday = dateStr === todayISO();
-      
+
       // Find cards with due dates on this day
       const latestEntries = getLatestEntries(state.cards, state.entries);
       const dueCards = [];
+      let totalDue = 0;
+
       state.cards.forEach(card => {
         const entry = latestEntries.get(card.id);
         if (entry && entry.dueDate === dateStr) {
           dueCards.push({ card, entry });
+          totalDue += entry.remainingStmt || 0;
         }
       });
-      
-      const cell = h('div', { class: 'calendar-cell' + (isToday ? ' today' : '') });
+
+      // Determine priority class based on total amount due
+      let priorityClass = '';
+      if (totalDue > 0) {
+        if (totalDue >= 1000) {
+          priorityClass = ' priority-high';
+        } else if (totalDue >= 300) {
+          priorityClass = ' priority-medium';
+        } else {
+          priorityClass = ' priority-low';
+        }
+      }
+
+      const cell = h('div', {
+        class: 'calendar-cell' + (isToday ? ' today' : '') + priorityClass
+      });
       cell.appendChild(h('div', { class: 'calendar-date' }, date.getDate().toString()));
-      
+
       if (dueCards.length > 0) {
         const items = h('div', { class: 'calendar-items' });
         dueCards.forEach(({ card, entry }) => {
@@ -196,12 +213,12 @@ function renderPaymentCalendar(state) {
         });
         cell.appendChild(items);
       }
-      
+
       row.appendChild(cell);
     }
     calendar.appendChild(row);
   }
-  
+
   return calendar;
 }
 
