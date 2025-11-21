@@ -55,10 +55,12 @@ function renderCardForm(card, state, actions) {
   
   // Issuer - select is fine with onchange
   grid.appendChild(renderField('Issuer', h('select', {
-    value: card.issuer,
     onchange: (e) => actions.updateCard(card.id, { issuer: e.target.value })
   },
-    ...ISSUERS.map(issuer => h('option', { value: issuer }, issuer))
+    ...ISSUERS.map(issuer => h('option', {
+      value: issuer,
+      selected: issuer === card.issuer
+    }, issuer))
   )));
   
   // Credit Limit - use onblur
